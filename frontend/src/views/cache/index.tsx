@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { request } from '@/api/client'
 
@@ -7,6 +8,7 @@ const columns = [
   "配置编号",
   "缓存键名",
   "过期秒数",
+  "缓存版本",
   "刷新策略",
   "预热开关",
   "容量上限",
@@ -16,35 +18,17 @@ const columns = [
 const actions = [
   "启用缓存",
   "暂停缓存",
-  "关闭缓存"
-]
-const statuses = [
-  "草稿",
-  "生效中",
-  "已暂停",
-  "已关闭"
-]
-const stats = [
-  {
-    "label": "缓存配置总数",
-    "value": 0
-  },
-  {
-    "label": "生效中缓存",
-    "value": 0
-  },
-  {
-    "label": "已暂停缓存",
-    "value": 0
-  }
+  "关闭缓存",
+  "刷新缓存"
 ]
 
-type Row = Record<string, string | number | null>
+type Row = Record<string, string | number | boolean | null>
 
 export default function CacheView() {
   const [rows, setRows] = useState<Row[]>([])
   const [total, setTotal] = useState(0)
   const [errorMessage, setErrorMessage] = useState('')
+  const [noticeMessage, setNoticeMessage] = useState('')
   const [filters, setFilters] = useState<Record<string, string>>({})
   const filterFields = useMemo(() => columns.slice(0, 3), [])
 
@@ -70,19 +54,28 @@ export default function CacheView() {
 
   async function runAction(action: string, row: Row) {
     setErrorMessage('')
+    setNoticeMessage('')
     try {
       const response = await request(`${ENDPOINT}/${row.id}/actions`, {
         method: 'POST',
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ values: { action } }),
       })
-      if (!response.ok) {
-        throw new Error('结果缓存加速动作未生效，请稍后重试')
+      const payload = await response.json()
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload?.message ?? '结果缓存加速动作未生效，请稍后重试')
       }
+      setNoticeMessage(payload.message ?? `缓存配置已${action}`)
       await reload()
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : '结果缓存加速操作失败')
     }
   }
+
+  const statCards = [
+    { label: '缓存配置总数', value: total },
+    { label: '生效中缓存', value: rows.filter((row) => row.status === '生效中').length },
+    { label: '已暂停缓存', value: rows.filter((row) => row.status === '已暂停').length },
+  ]
 
   return (
     <section className="page" data-module="cache">
@@ -102,7 +95,7 @@ export default function CacheView() {
       </header>
 
       <div className="stat-row">
-        {stats.map((item) => (
+        {statCards.map((item) => (
           <article key={item.label} className="stat-card">
             <span className="stat-label">{item.label}</span>
             <strong className="stat-value">{item.value}</strong>
@@ -135,13 +128,20 @@ export default function CacheView() {
         <tbody>
           {rows.map((row) => (
             <tr key={String(row.id)}>
-              {columns.map((column) => <td key={column}>{row[column] ?? '—'}</td>)}
+              {columns.map((column) => (
+                <td key={column}>
+                  {column === '缓存版本' ? `v${String(row[column] ?? 0)}` : (row[column] ?? '—')}
+                </td>
+              ))}
               <td className="row-actions">
                 {actions.map((action) => (
                   <button key={action} className="link" type="button" onClick={() => void runAction(action, row)}>
                     {action}
                   </button>
                 ))}
+                <Link className="link" to={`/cache-query?key=${encodeURIComponent(String(row['缓存键名'] ?? ''))}`}>
+                  查询结果
+                </Link>
               </td>
             </tr>
           ))}
@@ -155,6 +155,7 @@ export default function CacheView() {
 
       <footer className="page-foot">
         <span>共 {total} 条结果缓存加速记录</span>
+        {noticeMessage && <span>{noticeMessage}</span>}
         {errorMessage && <span className="error-text">{errorMessage}</span>}
       </footer>
     </section>

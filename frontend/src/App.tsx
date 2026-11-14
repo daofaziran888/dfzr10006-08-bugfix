@@ -5,6 +5,7 @@ import Overview from './views/Overview'
 import RegistryView from './views/registry'
 import RouterView from './views/router'
 import CacheView from './views/cache'
+import CacheQueryView from './views/cache-query'
 import LimiterView from './views/limiter'
 import OrchestraView from './views/orchestra'
 import TraceView from './views/trace'
@@ -19,7 +20,7 @@ import WhitelistView from './views/whitelist'
 import BalanceView from './views/balance'
 import RollbackView from './views/rollback'
 
-const navItems = [{ label: "运营概览", path: "/" }, { label: "服务注册发现", path: "/registry" }, { label: "查询路由分发", path: "/router" }, { label: "结果缓存加速", path: "/cache" }, { label: "调用限流降级", path: "/limiter" }, { label: "服务编排组合", path: "/orchestra" }, { label: "调用链追踪", path: "/trace" }, { label: "服务健康诊断", path: "/diagnose" }, { label: "数据接口契约", path: "/schema" }, { label: "数据订阅推送", path: "/subscribe" }, { label: "数据加工转换", path: "/transform" }, { label: "数据模拟服务", path: "/mock" }, { label: "接入网关管理", path: "/gateway" }, { label: "服务指标采集", path: "/metric" }, { label: "调用来源管理", path: "/whitelist" }, { label: "负载均衡策略", path: "/balance" }, { label: "服务版本回退", path: "/rollback" }]
+const navItems = [{ label: "运营概览", path: "/" }, { label: "服务注册发现", path: "/registry" }, { label: "查询路由分发", path: "/router" }, { label: "结果缓存加速", path: "/cache" }, { label: "查询结果详情", path: "/cache-query" }, { label: "调用限流降级", path: "/limiter" }, { label: "服务编排组合", path: "/orchestra" }, { label: "调用链追踪", path: "/trace" }, { label: "服务健康诊断", path: "/diagnose" }, { label: "数据接口契约", path: "/schema" }, { label: "数据订阅推送", path: "/subscribe" }, { label: "数据加工转换", path: "/transform" }, { label: "数据模拟服务", path: "/mock" }, { label: "接入网关管理", path: "/gateway" }, { label: "服务指标采集", path: "/metric" }, { label: "调用来源管理", path: "/whitelist" }, { label: "负载均衡策略", path: "/balance" }, { label: "服务版本回退", path: "/rollback" }]
 
 export default function App() {
   const [operator] = useState('值班管理员')
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="/registry" element={<RegistryView />} />
           <Route path="/router" element={<RouterView />} />
           <Route path="/cache" element={<CacheView />} />
+          <Route path="/cache-query" element={<CacheQueryView />} />
           <Route path="/limiter" element={<LimiterView />} />
           <Route path="/orchestra" element={<OrchestraView />} />
           <Route path="/trace" element={<TraceView />} />
